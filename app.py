@@ -9,9 +9,9 @@ app = Flask(__name__)
 CORS(app)
 
 # Configure Gemini AI with API key
-API_KEY = "AIzaSyDqgRQe8nu1lJry7NI0MgF21WSdRSOLEmw"
+API_KEY = "AIzaSyDqgRQe8nu1lJry7NI0MgF21WSdRSOLE"
 genai.configure(api_key=API_KEY)
-#AIzaSyAnOuinmsV8FH4SpPX1NmPH2p5GiLK_OMU
+#AIzaSyAnOuinmsV8FH4SpPX1NmPH2p5GiLK_O
 # Multi-language support dictionary
 LANGUAGES = {
     "English": {
