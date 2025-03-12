@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agricultural Problem Solver</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f0fdf4;
+        }
+        .loading {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="min-h-screen">
+        <!-- Header -->
+        <header class="bg-green-600 text-white py-6">
+            <div class="container mx-auto px-4">
+                <h1 class="text-3xl font-bold text-center">Agricultural Problem Solver</h1>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="container mx-auto px-4 py-8">
+            <!-- Language Selection -->
+            <div class="mb-8 max-w-2xl mx-auto">
+                <label class="block text-lg font-medium mb-2">Select Language / भाषा चुनें / భాష ఎంచుకోండి</label>
+                <select id="language" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-green-500">
+                    <option value="English">English</option>
+                    <option value="Hindi">हिंदी</option>
+                    <option value="Telugu">తెలుగు</option>
+                </select>
+            </div>
+
+            <!-- Form -->
+            <form id="problemForm" class="max-w-2xl mx-auto space-y-6">
+                <div>
+                    <label class="block text-lg font-medium mb-2" id="landTypeLabel">Select Land Type</label>
+                    <select id="landType" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-green-500" required>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-lg font-medium mb-2" id="seasonLabel">Select Season</label>
+                    <select id="season" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-green-500" required>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-lg font-medium mb-2" id="cropLabel">Select Crop Type</label>
+                    <select id="cropType" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-green-500" required>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-lg font-medium mb-2" id="acresLabel">Land Area (acres)</label>
+                    <input type="number" id="acres" min="0.1" step="0.1" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-green-500" required>
+                </div>
+
+                <div>
+                    <label class="block text-lg font-medium mb-2" id="problemLabel">Describe Your Problem</label>
+                    <textarea id="problem" rows="4" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-green-500" required></textarea>
+                </div>
+
+                <button type="submit" class="w-full bg-green-600 text-white py-3 px-6 rounded-lg hover:bg-green-700 transition duration-200">
+                    Get Solution
+                </button>
+            </form>
+
+            <!-- Solution Display -->
+            <div id="solutionBox" class="mt-8 max-w-2xl mx-auto hidden">
+                <h2 class="text-2xl font-bold mb-4" id="solutionLabel">Solution</h2>
+                <div id="solution" class="bg-white p-6 rounded-lg shadow-lg whitespace-pre-wrap"></div>
+            </div>
+        </main>
+
+        <!-- Loading Overlay -->
+        <div class="loading" id="loadingOverlay">
+            <div class="bg-white p-4 rounded-lg">
+                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
+                <p class="mt-2 text-center" id="loadingText">Generating solution...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const translations = {
+            "English": {
+                "landTypeLabel": "Select Land Type",
+                "seasonLabel": "Select Season",
+                "cropLabel": "Select Crop Type",
+                "acresLabel": "Land Area (acres)",
+                "problemLabel": "Describe Your Problem",
+                "solutionLabel": "Solution",
+                "loadingText": "Generating solution...",
+                "submitButton": "Get Solution"
+            },
+            "Hindi": {
+                "landTypeLabel": "भूमि का प्रकार चुनें",
+                "seasonLabel": "मौसम चुनें",
+                "cropLabel": "फसल का प्रकार चुनें",
+                "acresLabel": "भूमि क्षेत्र (एकड़)",
+                "problemLabel": "अपनी समस्या का वर्णन करें",
+                "solutionLabel": "समाधान",
+                "loadingText": "समाधान तैयार किया जा रहा है...",
+                "submitButton": "समाधान प्राप्त करें"
+            },
+            "Telugu": {
+                "landTypeLabel": "భూమి రకాన్ని ఎంచుకోండి",
+                "seasonLabel": "సీజన్ ఎంచుకోండి",
+                "cropLabel": "పంట రకాన్ని ఎంచుకోండి",
+                "acresLabel": "భూమి విస్తీర్ణం (ఎకరాలు)",
+                "problemLabel": "మీ సమస్యను వివరించండి",
+                "solutionLabel": "పరిష్కారం",
+                "loadingText": "పరిష్కారం తయారవుతోంది...",
+                "submitButton": "పరిష్కారం పొందండి"
+            }
+        };
+
+        // Update UI language
+        function updateLanguage(language) {
+            const trans = translations[language];
+            for (const [key, value] of Object.entries(trans)) {
+                const element = document.getElementById(key);
+                if (element) {
+                    if (element.tagName === "BUTTON") {
+                        element.textContent = value;
+                    } else {
+                        element.textContent = value;
+                    }
+                }
+            }
+        }
+
+        // Fetch options based on selected language
+        async function fetchOptions(language) {
+            const response = await fetch(`/api/get_options/${language}`);
+            const data = await response.json();
+            
+            // Update dropdowns
+            const landType = document.getElementById('landType');
+            const season = document.getElementById('season');
+            const cropType = document.getElementById('cropType');
+            
+            landType.innerHTML = data.land_types.map(type => 
+                `<option value="${type}">${type}</option>`).join('');
+            season.innerHTML = data.seasons.map(s => 
+                `<option value="${s}">${s}</option>`).join('');
+            cropType.innerHTML = data.crops.map(crop => 
+                `<option value="${crop}">${crop}</option>`).join('');
+        }
+
+        // Event Listeners
+        document.getElementById('language').addEventListener('change', function(e) {
+            const language = e.target.value;
+            updateLanguage(language);
+            fetchOptions(language);
+        });
+
+        document.getElementById('problemForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            loadingOverlay.style.display = 'flex';
+            
+            const formData = {
+                language: document.getElementById('language').value,
+                land_type: document.getElementById('landType').value,
+                season: document.getElementById('season').value,
+                crop_type: document.getElementById('cropType').value,
+                acres: document.getElementById('acres').value,
+                problem: document.getElementById('problem').value
+            };
+
+            try {
+                const response = await fetch('/api/generate_solution', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+                
+                const solutionBox = document.getElementById('solutionBox');
+                const solution = document.getElementById('solution');
+                
+                solutionBox.classList.remove('hidden');
+                solution.textContent = data.solution;
+                
+                // Scroll to solution
+                solutionBox.scrollIntoView({ behavior: 'smooth' });
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred while generating the solution. Please try again.');
+            } finally {
+                loadingOverlay.style.display = 'none';
+            }
+        });
+
+        // Initialize with English
+        updateLanguage('English');
+        fetchOptions('English');
+    </script>
+</body>
+</html>
